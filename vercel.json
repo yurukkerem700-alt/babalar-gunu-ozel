@@ -8,5 +8,10 @@
       "source": "/baba/:slug",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/pages.js": {
+      "maxDuration": 30
+    }
+  }
 }

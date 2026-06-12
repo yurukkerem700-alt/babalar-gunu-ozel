@@ -44,7 +44,7 @@ const THEMES = [
   },
 ];
 
-const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+const compressImage = (file: File, maxWidth = 600, quality = 0.5): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -57,6 +57,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
         const ctx = canvas.getContext('2d')!;
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const base64 = canvas.toDataURL('image/jpeg', quality).split(',')[1];
+        console.log('Compressed image size:', Math.round(base64.length / 1024), 'KB');
         resolve(base64);
       };
       img.onerror = reject;
@@ -190,19 +191,24 @@ export default function CreateForm({ initialData, onSubmit, isEditing, saving }:
   const handleSubmit = async () => {
     if (!validateStep()) return;
 
-    let submitData = { ...formData };
+    try {
+      let submitData = { ...formData };
 
-    if (photoFiles.father) {
-      submitData.fatherPhotoBase64 = await compressImage(photoFiles.father);
+      if (photoFiles.father) {
+        submitData.fatherPhotoBase64 = await compressImage(photoFiles.father);
+      }
+      if (photoFiles.family) {
+        submitData.familyPhotoBase64 = await compressImage(photoFiles.family);
+      }
+
+      delete (submitData as any).father_photo_url;
+      delete (submitData as any).family_photo_url;
+
+      onSubmit(submitData);
+    } catch (err: any) {
+      console.error('Form submit error:', err);
+      alert('Bir hata oluştu: ' + err.message);
     }
-    if (photoFiles.family) {
-      submitData.familyPhotoBase64 = await compressImage(photoFiles.family);
-    }
-
-    delete (submitData as any).father_photo_url;
-    delete (submitData as any).family_photo_url;
-
-    onSubmit(submitData);
   };
 
   const renderTagInput = (

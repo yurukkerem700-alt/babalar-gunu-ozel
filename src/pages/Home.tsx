@@ -12,16 +12,40 @@ export default function Home() {
   const handleSubmit = async (formData: any) => {
     setSubmitting(true);
     try {
+      // Fotoğraf varsa boyut kontrolü
+      if (formData.fatherPhotoBase64) {
+        const sizeKB = Math.round(formData.fatherPhotoBase64.length / 1024);
+        console.log('Father photo size:', sizeKB, 'KB');
+        if (sizeKB > 2000) {
+          throw new Error('Baba fotoğrafı çok büyük (2MB\'dan küçük olmalı)');
+        }
+      }
+      if (formData.familyPhotoBase64) {
+        const sizeKB = Math.round(formData.familyPhotoBase64.length / 1024);
+        console.log('Family photo size:', sizeKB, 'KB');
+        if (sizeKB > 2000) {
+          throw new Error('Aile fotoğrafı çok büyük (2MB\'dan küçük olmalı)');
+        }
+      }
+
       const res = await fetch('/api/pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error('Bir hata oluştu');
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Bilinmeyen hata' }));
+        console.error('API error:', errorData);
+        throw new Error(errorData.error || 'Sayfa oluşturulurken bir hata oluştu');
+      }
+
       const data = await res.json();
+      console.log('Page created:', data);
       setCreatedPage(data);
     } catch (err: any) {
-      alert('Bir hata oluştu: ' + err.message);
+      console.error('Submit error:', err);
+      alert('❌ Hata: ' + err.message + '\n\nLütfen tekrar deneyin veya fotoğraf yüklemeden tekrar deneyin.');
     } finally {
       setSubmitting(false);
     }
