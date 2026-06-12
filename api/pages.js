@@ -50,143 +50,152 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const body = req.body;
-      console.log('POST request received:', {
-        father_name: body.father_name,
-        has_father_photo: !!body.fatherPhotoBase64,
-        has_family_photo: !!body.familyPhotoBase64,
-        theme: body.theme,
-      });
-
-      const slug = generateSlug(body.father_name || 'babam');
-
-      let father_photo_url = null;
-      let family_photo_url = null;
-
-      // Father photo upload
-      if (body.fatherPhotoBase64) {
-        try {
-          const buffer = Buffer.from(body.fatherPhotoBase64, 'base64');
-          const fileName = `father-${slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-          console.log('Uploading father photo:', fileName, 'Size:', Math.round(buffer.length / 1024), 'KB');
-          
-          if (buffer.length > 5 * 1024 * 1024) {
-            console.warn('Father photo too large:', Math.round(buffer.length / 1024), 'KB');
-          }
-          
-          const { error: uploadError, data: uploadData } = await supabase.storage
-            .from('father-photos')
-            .upload(fileName, buffer, { 
-              contentType: 'image/jpeg', 
-              upsert: false,
-              cacheControl: '3600'
-            });
-          
-          if (uploadError) {
-            console.error('Father photo upload error:', uploadError.message, uploadError);
-          } else {
-            const { data: urlData } = supabase.storage.from('father-photos').getPublicUrl(fileName);
-            father_photo_url = urlData.publicUrl;
-            console.log('Father photo uploaded:', father_photo_url);
-          }
-        } catch (err) {
-          console.error('Father photo upload failed:', err);
-        }
-      }
-
-      // Family photo upload
-      if (body.familyPhotoBase64) {
-        try {
-          const buffer = Buffer.from(body.familyPhotoBase64, 'base64');
-          const fileName = `family-${slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-          console.log('Uploading family photo:', fileName, 'Size:', Math.round(buffer.length / 1024), 'KB');
-          
-          if (buffer.length > 5 * 1024 * 1024) {
-            console.warn('Family photo too large:', Math.round(buffer.length / 1024), 'KB');
-          }
-          
-          const { error: uploadError, data: uploadData } = await supabase.storage
-            .from('father-photos')
-            .upload(fileName, buffer, { 
-              contentType: 'image/jpeg', 
-              upsert: false,
-              cacheControl: '3600'
-            });
-          
-          if (uploadError) {
-            console.error('Family photo upload error:', uploadError.message, uploadError);
-          } else {
-            const { data: urlData } = supabase.storage.from('father-photos').getPublicUrl(fileName);
-            family_photo_url = urlData.publicUrl;
-            console.log('Family photo uploaded:', family_photo_url);
-          }
-        } catch (err) {
-          console.error('Family photo upload failed:', err);
-        }
-      }
-
-      // Database insert
-      // Müzik bilgisini JSON olarak kaydet (isim + URL)
-      let musicData = null;
-      if (body.father_favorite_music || body.father_favorite_music_url) {
-        musicData = JSON.stringify({
-          name: body.father_favorite_music || '',
-          url: body.father_favorite_music_url || ''
+      try {
+        const body = req.body;
+        console.log('POST request received:', {
+          father_name: body.father_name,
+          has_father_photo: !!body.fatherPhotoBase64,
+          has_family_photo: !!body.familyPhotoBase64,
+          theme: body.theme,
         });
-      }
 
-      const insertData = {
-        slug,
-        father_name: body.father_name,
-        birth_date: body.birth_date,
-        father_occupation: body.father_occupation || null,
-        father_favorite_color: body.father_favorite_color || null,
-        father_favorite_food: body.father_favorite_food || null,
-        father_favorite_music: musicData || body.father_favorite_music || null,
-        father_hobbies: body.father_hobbies || [],
-        father_interests: body.father_interests || [],
-        father_photo_url,
-        family_photo_url,
-        message: body.message || null,
-        story: body.story || null,
-        creator_name: body.creator_name,
-        creator_relationship: body.creator_relationship || null,
-        father_qualities: body.father_qualities || [],
-        favorite_memory: body.favorite_memory || null,
-        theme: body.theme || 'klasik',
-      };
+        const slug = generateSlug(body.father_name || 'babam');
 
-      console.log('Inserting data:', { 
-        slug: insertData.slug, 
-        father_name: insertData.father_name, 
-        theme: insertData.theme,
-        has_photo: !!insertData.father_photo_url,
-        has_family: !!insertData.family_photo_url,
-      });
+        let father_photo_url = null;
+        let family_photo_url = null;
 
-      const { data, error } = await supabase
-        .from('father_pages')
-        .insert(insertData)
-        .select()
-        .single();
+        // Father photo upload
+        if (body.fatherPhotoBase64) {
+          try {
+            const buffer = Buffer.from(body.fatherPhotoBase64, 'base64');
+            const fileName = `father-${slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+            console.log('Uploading father photo:', fileName, 'Size:', Math.round(buffer.length / 1024), 'KB');
+            
+            if (buffer.length > 5 * 1024 * 1024) {
+              console.warn('Father photo too large:', Math.round(buffer.length / 1024), 'KB');
+            }
+            
+            const { error: uploadError, data: uploadData } = await supabase.storage
+              .from('father-photos')
+              .upload(fileName, buffer, { 
+                contentType: 'image/jpeg', 
+                upsert: false,
+                cacheControl: '3600'
+              });
+            
+            if (uploadError) {
+              console.error('Father photo upload error:', uploadError.message, uploadError);
+            } else {
+              const { data: urlData } = supabase.storage.from('father-photos').getPublicUrl(fileName);
+              father_photo_url = urlData.publicUrl;
+              console.log('Father photo uploaded:', father_photo_url);
+            }
+          } catch (err) {
+            console.error('Father photo upload failed:', err);
+          }
+        }
 
-      if (error) {
-        console.error('Database insert error:', JSON.stringify(error, null, 2));
+        // Family photo upload
+        if (body.familyPhotoBase64) {
+          try {
+            const buffer = Buffer.from(body.familyPhotoBase64, 'base64');
+            const fileName = `family-${slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+            console.log('Uploading family photo:', fileName, 'Size:', Math.round(buffer.length / 1024), 'KB');
+            
+            if (buffer.length > 5 * 1024 * 1024) {
+              console.warn('Family photo too large:', Math.round(buffer.length / 1024), 'KB');
+            }
+            
+            const { error: uploadError, data: uploadData } = await supabase.storage
+              .from('father-photos')
+              .upload(fileName, buffer, { 
+                contentType: 'image/jpeg', 
+                upsert: false,
+                cacheControl: '3600'
+              });
+            
+            if (uploadError) {
+              console.error('Family photo upload error:', uploadError.message, uploadError);
+            } else {
+              const { data: urlData } = supabase.storage.from('father-photos').getPublicUrl(fileName);
+              family_photo_url = urlData.publicUrl;
+              console.log('Family photo uploaded:', family_photo_url);
+            }
+          } catch (err) {
+            console.error('Family photo upload failed:', err);
+          }
+        }
+
+        // Database insert
+        // Müzik bilgisini JSON olarak kaydet (isim + URL)
+        let musicData = null;
+        if (body.father_favorite_music || body.father_favorite_music_url) {
+          musicData = JSON.stringify({
+            name: body.father_favorite_music || '',
+            url: body.father_favorite_music_url || ''
+          });
+        }
+
+        const insertData = {
+          slug,
+          father_name: body.father_name || '',
+          birth_date: body.birth_date || null,
+          father_occupation: body.father_occupation || null,
+          father_favorite_color: body.father_favorite_color || null,
+          father_favorite_food: body.father_favorite_food || null,
+          father_favorite_music: musicData || body.father_favorite_music || null,
+          father_hobbies: body.father_hobbies || [],
+          father_interests: body.father_interests || [],
+          father_photo_url,
+          family_photo_url,
+          message: body.message || null,
+          story: body.story || null,
+          creator_name: body.creator_name || '',
+          creator_relationship: body.creator_relationship || null,
+          father_qualities: body.father_qualities || [],
+          favorite_memory: body.favorite_memory || null,
+          theme: body.theme || 'klasik',
+        };
+
+        console.log('Inserting data:', { 
+          slug: insertData.slug, 
+          father_name: insertData.father_name, 
+          theme: insertData.theme,
+          has_photo: !!insertData.father_photo_url,
+          has_family: !!insertData.family_photo_url,
+        });
+
+        const { data, error } = await supabase
+          .from('father_pages')
+          .insert(insertData)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Database insert error:', JSON.stringify(error, null, 2));
+          return res.status(500).json({ 
+            error: error.message || 'Veritabanı hatası',
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+        }
+
+        if (!data) {
+          console.error('No data returned from insert');
+          return res.status(500).json({ error: 'Sayfa oluşturulamadı' });
+        }
+
+        console.log('Page created successfully:', data.slug);
+        return res.status(201).json(data);
+      } catch (err) {
+        console.error('POST handler exception:', err);
         return res.status(500).json({ 
-          error: error.message || 'Veritabanı hatası',
-          code: error.code,
-          details: error.details,
-          hint: error.hint
+          error: 'Sunucu hatası',
+          message: err.message,
+          stack: err.stack
         });
       }
-
-      if (!data) {
-        console.error('No data returned from insert');
-        return res.status(500).json({ error: 'Sayfa oluşturulamadı' });
-      }
-
-      console.log('Page created successfully:', data.slug);
-      return res.status(201).json(data);
     }
 
     if (req.method === 'PUT') {

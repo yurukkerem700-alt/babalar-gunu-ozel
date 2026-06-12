@@ -29,10 +29,33 @@ export default function Home() {
       }
 
       console.log('Sending request to API...');
+      
+      // FormData'yı temizle - null/undefined/empty string değerleri kaldır
+      const cleanData: any = {};
+      Object.keys(formData).forEach(key => {
+        const value = formData[key];
+        if (value !== null && value !== undefined && value !== '') {
+          cleanData[key] = value;
+        }
+      });
+      
+      // Arrays boşsa bile gönder
+      if (!cleanData.father_hobbies) cleanData.father_hobbies = [];
+      if (!cleanData.father_interests) cleanData.father_interests = [];
+      if (!cleanData.father_qualities) cleanData.father_qualities = [];
+      
+      console.log('Clean data to send:', {
+        father_name: cleanData.father_name,
+        has_father_photo: !!cleanData.fatherPhotoBase64,
+        has_family_photo: !!cleanData.familyPhotoBase64,
+        has_music_url: !!cleanData.father_favorite_music_url,
+        theme: cleanData.theme,
+      });
+      
       const res = await fetch('/api/pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(cleanData),
       });
 
       if (!res.ok) {
