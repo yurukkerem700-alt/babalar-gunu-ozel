@@ -19,7 +19,14 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   if (req.method === 'OPTIONS') return res.status(204).end();
+
+  // Body size check (max 10MB)
+  const contentLength = parseInt(req.headers['content-length'] || '0', 10);
+  if (contentLength > 10 * 1024 * 1024) {
+    return res.status(413).json({ error: 'Request çok büyük (max 10MB)' });
+  }
 
   try {
     if (req.method === 'GET') {
@@ -60,15 +67,23 @@ export default async function handler(req, res) {
       if (body.fatherPhotoBase64) {
         try {
           const buffer = Buffer.from(body.fatherPhotoBase64, 'base64');
-          const fileName = `father-${slug}-${Date.now()}.jpg`;
+          const fileName = `father-${slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
           console.log('Uploading father photo:', fileName, 'Size:', Math.round(buffer.length / 1024), 'KB');
           
-          const { error: uploadError } = await supabase.storage
+          if (buffer.length > 5 * 1024 * 1024) {
+            console.warn('Father photo too large:', Math.round(buffer.length / 1024), 'KB');
+          }
+          
+          const { error: uploadError, data: uploadData } = await supabase.storage
             .from('father-photos')
-            .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: true });
+            .upload(fileName, buffer, { 
+              contentType: 'image/jpeg', 
+              upsert: false,
+              cacheControl: '3600'
+            });
           
           if (uploadError) {
-            console.error('Father photo upload error:', uploadError);
+            console.error('Father photo upload error:', uploadError.message, uploadError);
           } else {
             const { data: urlData } = supabase.storage.from('father-photos').getPublicUrl(fileName);
             father_photo_url = urlData.publicUrl;
@@ -83,15 +98,23 @@ export default async function handler(req, res) {
       if (body.familyPhotoBase64) {
         try {
           const buffer = Buffer.from(body.familyPhotoBase64, 'base64');
-          const fileName = `family-${slug}-${Date.now()}.jpg`;
+          const fileName = `family-${slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
           console.log('Uploading family photo:', fileName, 'Size:', Math.round(buffer.length / 1024), 'KB');
           
-          const { error: uploadError } = await supabase.storage
+          if (buffer.length > 5 * 1024 * 1024) {
+            console.warn('Family photo too large:', Math.round(buffer.length / 1024), 'KB');
+          }
+          
+          const { error: uploadError, data: uploadData } = await supabase.storage
             .from('father-photos')
-            .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: true });
+            .upload(fileName, buffer, { 
+              contentType: 'image/jpeg', 
+              upsert: false,
+              cacheControl: '3600'
+            });
           
           if (uploadError) {
-            console.error('Family photo upload error:', uploadError);
+            console.error('Family photo upload error:', uploadError.message, uploadError);
           } else {
             const { data: urlData } = supabase.storage.from('father-photos').getPublicUrl(fileName);
             family_photo_url = urlData.publicUrl;
@@ -124,7 +147,13 @@ export default async function handler(req, res) {
         theme: body.theme || 'klasik',
       };
 
-      console.log('Inserting data:', { slug, father_name: insertData.father_name, theme: insertData.theme });
+      console.log('Inserting data:', { 
+        slug: insertData.slug, 
+        father_name: insertData.father_name, 
+        theme: insertData.theme,
+        has_photo: !!insertData.father_photo_url,
+        has_family: !!insertData.family_photo_url,
+      });
 
       const { data, error } = await supabase
         .from('father_pages')
@@ -133,8 +162,12 @@ export default async function handler(req, res) {
         .single();
 
       if (error) {
-        console.error('Database insert error:', error);
-        throw error;
+        console.error('Database insert error:', error.message, error.details, error.hint);
+        return res.status(500).json({ 
+          error: 'Veritabanı hatası: ' + error.message,
+          details: error.details,
+          hint: error.hint
+        });
       }
 
       console.log('Page created successfully:', data.slug);

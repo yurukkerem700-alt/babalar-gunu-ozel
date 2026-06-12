@@ -36,32 +36,57 @@ export default function EditPage() {
   useEffect(() => {
     const fetchPage = async () => {
       try {
+        console.log('Fetching page for edit:', slug);
         const res = await fetch(`/api/pages?slug=${slug}`);
-        if (!res.ok) throw new Error('Sayfa bulunamadı');
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('API response error:', res.status, errorText);
+          throw new Error(`Sayfa bulunamadı (${res.status})`);
+        }
+        
         const data = await res.json();
+        console.log('Page data loaded for edit:', data);
         setPageData(data);
       } catch (err: any) {
+        console.error('Fetch error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchPage();
+    
+    if (slug) {
+      fetchPage();
+    }
   }, [slug]);
 
   const handleSave = async (formData: any) => {
     setSaving(true);
+    setError('');
+    
     try {
+      console.log('Saving changes for slug:', slug);
       const res = await fetch(`/api/pages?slug=${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error('Güncelleme başarısız');
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Bilinmeyen hata' }));
+        console.error('Update error:', errorData);
+        throw new Error(errorData.error || 'Güncelleme başarısız');
+      }
+      
+      const updatedData = await res.json();
+      console.log('Page updated successfully:', updatedData);
+      
       setSaved(true);
       setTimeout(() => navigate(`/baba/${slug}`), 2000);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Save error:', err);
+      setError('Güncelleme hatası: ' + err.message);
     } finally {
       setSaving(false);
     }

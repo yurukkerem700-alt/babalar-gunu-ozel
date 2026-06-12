@@ -131,17 +131,29 @@ export default function FatherPage() {
   useEffect(() => {
     const fetchPage = async () => {
       try {
+        console.log('Fetching page for slug:', slug);
         const res = await fetch(`/api/pages?slug=${slug}`);
-        if (!res.ok) throw new Error('Sayfa bulunamadı');
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('API response error:', res.status, errorText);
+          throw new Error(`Sayfa bulunamadı (${res.status})`);
+        }
+        
         const data = await res.json();
+        console.log('Page data loaded:', data);
         setPage(data);
       } catch (err: any) {
+        console.error('Fetch error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchPage();
+    
+    if (slug) {
+      fetchPage();
+    }
   }, [slug]);
 
   const copyLink = () => {

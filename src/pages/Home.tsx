@@ -17,17 +17,18 @@ export default function Home() {
         const sizeKB = Math.round(formData.fatherPhotoBase64.length / 1024);
         console.log('Father photo size:', sizeKB, 'KB');
         if (sizeKB > 2000) {
-          throw new Error('Baba fotoğrafı çok büyük (2MB\'dan küçük olmalı)');
+          throw new Error('Baba fotoğrafı çok büyük (2MB\'dan küçük olmalı). Lütfen daha küçük bir fotoğraf seçin.');
         }
       }
       if (formData.familyPhotoBase64) {
         const sizeKB = Math.round(formData.familyPhotoBase64.length / 1024);
         console.log('Family photo size:', sizeKB, 'KB');
         if (sizeKB > 2000) {
-          throw new Error('Aile fotoğrafı çok büyük (2MB\'dan küçük olmalı)');
+          throw new Error('Aile fotoğrafı çok büyük (2MB\'dan küçük olmalı). Lütfen daha küçük bir fotoğraf seçin.');
         }
       }
 
+      console.log('Sending request to API...');
       const res = await fetch('/api/pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,7 +42,10 @@ export default function Home() {
       }
 
       const data = await res.json();
-      console.log('Page created:', data);
+      console.log('Page created successfully:', data);
+      
+      // Form modal'ı kapat ve success modal'ı göster
+      setShowForm(false);
       setCreatedPage(data);
     } catch (err: any) {
       console.error('Submit error:', err);

@@ -194,20 +194,44 @@ export default function CreateForm({ initialData, onSubmit, isEditing, saving }:
     try {
       let submitData = { ...formData };
 
+      // Fotoğraf yükleme ve sıkıştırma
       if (photoFiles.father) {
-        submitData.fatherPhotoBase64 = await compressImage(photoFiles.father);
+        try {
+          submitData.fatherPhotoBase64 = await compressImage(photoFiles.father);
+          console.log('Father photo compressed successfully');
+        } catch (err) {
+          console.error('Father photo compression failed:', err);
+          alert('⚠️ Baba fotoğrafı yüklenirken hata oluştu. Fotoğrafsız devam ediliyor...');
+          submitData.fatherPhotoBase64 = null;
+        }
       }
+      
       if (photoFiles.family) {
-        submitData.familyPhotoBase64 = await compressImage(photoFiles.family);
+        try {
+          submitData.familyPhotoBase64 = await compressImage(photoFiles.family);
+          console.log('Family photo compressed successfully');
+        } catch (err) {
+          console.error('Family photo compression failed:', err);
+          alert('⚠️ Aile fotoğrafı yüklenirken hata oluştu. Fotoğrafsız devam ediliyor...');
+          submitData.familyPhotoBase64 = null;
+        }
       }
 
+      // URL'leri kaldır (sadece base64 gönder)
       delete (submitData as any).father_photo_url;
       delete (submitData as any).family_photo_url;
+
+      console.log('Submitting form data:', {
+        father_name: submitData.father_name,
+        has_father_photo: !!submitData.fatherPhotoBase64,
+        has_family_photo: !!submitData.familyPhotoBase64,
+        theme: submitData.theme,
+      });
 
       onSubmit(submitData);
     } catch (err: any) {
       console.error('Form submit error:', err);
-      alert('Bir hata oluştu: ' + err.message);
+      alert('❌ Bir hata oluştu: ' + err.message);
     }
   };
 
