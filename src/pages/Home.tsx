@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Heart, Sparkles, Gift, ArrowDown, Copy, Check, ExternalLink, Share2 } from 'lucide-react';
 import CreateForm from '../components/CreateForm';
 
@@ -261,117 +261,86 @@ export default function Home() {
       </footer>
 
       {/* Create Form Modal */}
-      <AnimatePresence>
-        {showForm && !createdPage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-y-auto"
-          >
-            <div className="min-h-full py-8 px-4 flex items-start justify-center">
-              <motion.div
-                initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                className="w-full max-w-3xl"
-              >
-                <div className="flex justify-end mb-4">
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="text-white/60 hover:text-white text-2xl font-bold px-4 py-2 rounded-lg hover:bg-white/10 transition"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <CreateForm
-                  onSubmit={handleSubmit}
-                  isEditing={false}
-                  saving={submitting}
-                />
-              </motion.div>
+      {showForm && !createdPage && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-y-auto">
+          <div className="min-h-full py-8 px-4 flex items-start justify-center">
+            <div className="w-full max-w-3xl">
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-white/60 hover:text-white text-2xl font-bold px-4 py-2 rounded-lg hover:bg-white/10 transition"
+                >
+                  ✕
+                </button>
+              </div>
+              <CreateForm
+                onSubmit={handleSubmit}
+                isEditing={false}
+                saving={submitting}
+              />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       {/* Success Modal */}
-      <AnimatePresence>
-        {createdPage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 50 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 50 }}
-              className="bg-gradient-to-br from-slate-800 to-blue-900 border border-amber-500/30 rounded-3xl p-8 md:p-12 max-w-lg w-full text-center shadow-2xl"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3, type: 'spring' }}
-                className="text-6xl mb-6"
-              >
-                🎉
-              </motion.div>
-              <h2 className="font-serif text-3xl font-bold text-amber-300 mb-3">
-                Sayfa Oluşturuldu!
-              </h2>
-              <p className="text-blue-200 mb-6">
-                <span className="font-semibold text-amber-200">{createdPage.father_name}</span> için özel sayfa hazır!
+      {createdPage && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-blue-900 border border-amber-500/30 rounded-3xl p-8 md:p-12 max-w-lg w-full text-center shadow-2xl">
+            <div className="text-6xl mb-6">🎉</div>
+            <h2 className="font-serif text-3xl font-bold text-amber-300 mb-3">
+              Sayfa Oluşturuldu!
+            </h2>
+            <p className="text-blue-200 mb-6">
+              <span className="font-semibold text-amber-200">{createdPage.father_name}</span> için özel sayfa hazır!
+            </p>
+
+            <div className="bg-black/30 rounded-xl p-4 mb-6">
+              <p className="text-sm text-blue-300 mb-2">Sayfa Linkin:</p>
+              <p className="text-amber-200 text-sm break-all font-mono">
+                {window.location.origin}/baba/{createdPage.slug}
               </p>
+            </div>
 
-              <div className="bg-black/30 rounded-xl p-4 mb-6">
-                <p className="text-sm text-blue-300 mb-2">Sayfa Linkin:</p>
-                <p className="text-amber-200 text-sm break-all font-mono">
-                  {window.location.origin}/baba/{createdPage.slug}
-                </p>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <button
+                onClick={copyLink}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-amber-500 text-slate-900 font-bold rounded-xl hover:bg-amber-400 transition"
+              >
+                {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                {copied ? 'Kopyalandı!' : 'Linki Kopyala'}
+              </button>
+              <button
+                onClick={shareWhatsApp}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-500 transition"
+              >
+                <Share2 className="w-5 h-5" />
+                WhatsApp'ta Paylaş
+              </button>
+            </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                <button
-                  onClick={copyLink}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-amber-500 text-slate-900 font-bold rounded-xl hover:bg-amber-400 transition"
-                >
-                  {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                  {copied ? 'Kopyalandı!' : 'Linki Kopyala'}
-                </button>
-                <button
-                  onClick={shareWhatsApp}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-500 transition"
-                >
-                  <Share2 className="w-5 h-5" />
-                  WhatsApp'ta Paylaş
-                </button>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href={`/baba/${createdPage.slug}`}
-                  target="_blank"
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition border border-white/20"
-                >
-                  <ExternalLink className="w-5 h-5" />
-                  Sayfayı Gör
-                </a>
-                <button
-                  onClick={() => {
-                    setCreatedPage(null);
-                    setShowForm(false);
-                  }}
-                  className="flex-1 px-6 py-3 bg-white/5 text-blue-200 font-semibold rounded-xl hover:bg-white/10 transition border border-white/10"
-                >
-                  Yeni Sayfa Oluştur
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href={`/baba/${createdPage.slug}`}
+                target="_blank"
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition border border-white/20"
+              >
+                <ExternalLink className="w-5 h-5" />
+                Sayfayı Gör
+              </a>
+              <button
+                onClick={() => {
+                  setCreatedPage(null);
+                  setShowForm(false);
+                }}
+                className="flex-1 px-6 py-3 bg-white/5 text-blue-200 font-semibold rounded-xl hover:bg-white/10 transition border border-white/10"
+              >
+                Yeni Sayfa Oluştur
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

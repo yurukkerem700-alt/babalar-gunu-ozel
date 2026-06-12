@@ -4,8 +4,36 @@ import { motion } from 'framer-motion';
 import {
   Heart, Star, Calendar, Briefcase, Palette, Utensils,
   Music, Edit, Share2, Copy, Check, ExternalLink,
-  Sparkles, Clock, Award, BookHeart, ArrowLeft
+  Sparkles, Clock, Award, BookHeart, ArrowLeft, Volume2, VolumeX
 } from 'lucide-react';
+
+// YouTube URL'sinden video ID'sini çıkar
+const extractYouTubeId = (url: string): string | null => {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /^([a-zA-Z0-9_-]{11})$/
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+};
+
+// father_favorite_music alanını parse et (JSON string veya düz string olabilir)
+const parseMusicData = (musicField: string | null): { name: string; url: string } => {
+  if (!musicField) return { name: '', url: '' };
+  try {
+    const parsed = JSON.parse(musicField);
+    if (parsed && typeof parsed === 'object') {
+      return { name: parsed.name || '', url: parsed.url || '' };
+    }
+  } catch {
+    // JSON değil, düz string
+  }
+  return { name: musicField, url: '' };
+};
 
 const THEMES: Record<string, any> = {
   klasik: {
@@ -127,6 +155,8 @@ export default function FatherPage() {
   const [page, setPage] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [musicPlaying, setMusicPlaying] = useState(true);
+  const [musicStarted, setMusicStarted] = useState(false);
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -742,6 +772,60 @@ export default function FatherPage() {
           </div>
         </section>
       )}
+
+      {/* Music Player - YouTube Background Music */}
+      {(() => {
+        const musicData = parseMusicData(page.father_favorite_music);
+        const videoId = extractYouTubeId(musicData.url);
+        if (!videoId) return null;
+        
+        return (
+          <>
+            {/* Hidden YouTube iframe for audio */}
+            <iframe
+              id="youtube-player"
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=${musicStarted && musicPlaying ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&showinfo=0&mute=${musicStarted ? 0 : 1}`}
+              style={{ display: 'none' }}
+              allow="autoplay; encrypted-media"
+              title="Background Music"
+            />
+            
+            {/* Music Control Button - Fixed Position */}
+            <div className="fixed bottom-6 right-6 z-50">
+              <button
+                onClick={() => {
+                  if (!musicStarted) {
+                    setMusicStarted(true);
+                    setMusicPlaying(true);
+                  } else {
+                    setMusicPlaying(!musicPlaying);
+                  }
+                }}
+                className="p-4 rounded-full shadow-2xl transition-all hover:scale-110"
+                style={{ 
+                  background: theme.accent,
+                  color: theme.bgPrimary
+                }}
+                title={musicPlaying ? 'Müziği Durdur' : 'Müziği Başlat'}
+              >
+                {musicPlaying && musicStarted ? (
+                  <Volume2 className="w-6 h-6" />
+                ) : (
+                  <VolumeX className="w-6 h-6" />
+                )}
+              </button>
+              {musicData.name && (
+                <div 
+                  className="absolute bottom-full right-0 mb-2 px-3 py-1 rounded-lg text-xs whitespace-nowrap"
+                  style={{ background: theme.bgCard, color: theme.accent, border: `1px solid ${theme.bgCardBorder}` }}
+                >
+                  🎵 {musicData.name}
+                </div>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {/* CTA Section */}
       <section className="relative z-10 py-16 px-4">

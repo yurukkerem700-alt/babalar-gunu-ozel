@@ -126,6 +126,15 @@ export default async function handler(req, res) {
       }
 
       // Database insert
+      // Müzik bilgisini JSON olarak kaydet (isim + URL)
+      let musicData = null;
+      if (body.father_favorite_music || body.father_favorite_music_url) {
+        musicData = JSON.stringify({
+          name: body.father_favorite_music || '',
+          url: body.father_favorite_music_url || ''
+        });
+      }
+
       const insertData = {
         slug,
         father_name: body.father_name,
@@ -133,7 +142,7 @@ export default async function handler(req, res) {
         father_occupation: body.father_occupation || null,
         father_favorite_color: body.father_favorite_color || null,
         father_favorite_food: body.father_favorite_food || null,
-        father_favorite_music: body.father_favorite_music || null,
+        father_favorite_music: musicData || body.father_favorite_music || null,
         father_hobbies: body.father_hobbies || [],
         father_interests: body.father_interests || [],
         father_photo_url,
@@ -206,13 +215,22 @@ export default async function handler(req, res) {
         }
       }
 
+      // Müzik bilgisini JSON olarak kaydet (isim + URL)
+      let musicData = null;
+      if (body.father_favorite_music || body.father_favorite_music_url) {
+        musicData = JSON.stringify({
+          name: body.father_favorite_music || '',
+          url: body.father_favorite_music_url || ''
+        });
+      }
+
       const updateData = {
         father_name: body.father_name,
         birth_date: body.birth_date,
         father_occupation: body.father_occupation || null,
         father_favorite_color: body.father_favorite_color || null,
         father_favorite_food: body.father_favorite_food || null,
-        father_favorite_music: body.father_favorite_music || null,
+        father_favorite_music: musicData || body.father_favorite_music || null,
         father_hobbies: body.father_hobbies || [],
         father_interests: body.father_interests || [],
         message: body.message || null,

@@ -75,6 +75,7 @@ interface FormData {
   father_favorite_color: string;
   father_favorite_food: string;
   father_favorite_music: string;
+  father_favorite_music_url: string;
   father_hobbies: string[];
   father_interests: string[];
   father_qualities: string[];
@@ -106,6 +107,7 @@ export default function CreateForm({ initialData, onSubmit, isEditing, saving }:
     father_favorite_color: initialData?.father_favorite_color || '',
     father_favorite_food: initialData?.father_favorite_food || '',
     father_favorite_music: initialData?.father_favorite_music || '',
+    father_favorite_music_url: initialData?.father_favorite_music_url || '',
     father_hobbies: initialData?.father_hobbies || [],
     father_interests: initialData?.father_interests || [],
     father_qualities: initialData?.father_qualities || [],
@@ -382,6 +384,19 @@ export default function CreateForm({ initialData, onSubmit, isEditing, saving }:
                 placeholder="Örn: Türk Halk Müziği, Barış Manço..."
                 className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 transition"
               />
+            </div>
+            <div>
+              <label className="block text-amber-200 font-semibold mb-2 flex items-center gap-2">
+                🎵 Sevdiği Şarkı (YouTube Linki - Arka Planda Çalacak)
+              </label>
+              <input
+                type="url"
+                value={formData.father_favorite_music_url}
+                onChange={e => updateField('father_favorite_music_url', e.target.value)}
+                placeholder="Örn: https://www.youtube.com/watch?v=xxxxx"
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 transition"
+              />
+              <p className="text-white/40 text-xs mt-2">💡 Bu şarkı babanın özel sayfasında arka planda çalacak</p>
             </div>
           </div>
         );
