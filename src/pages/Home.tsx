@@ -36,9 +36,26 @@ export default function Home() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Bilinmeyen hata' }));
-        console.error('API error:', errorData);
-        throw new Error(errorData.error || 'Sayfa oluşturulurken bir hata oluştu');
+        let errorText = '';
+        try {
+          // Önce text olarak oku
+          const rawText = await res.text();
+          console.error('API raw response:', rawText);
+          
+          // Sonra JSON parse etmeyi dene
+          try {
+            const errorData = JSON.parse(rawText);
+            errorText = errorData.error || errorData.message || JSON.stringify(errorData);
+            console.error('API error parsed:', errorData);
+          } catch {
+            errorText = rawText || `HTTP ${res.status}`;
+            console.error('API error (not JSON):', errorText);
+          }
+        } catch (readErr) {
+          errorText = `HTTP ${res.status}: Response okunamadı`;
+          console.error('Failed to read response:', readErr);
+        }
+        throw new Error(errorText || `HTTP ${res.status}: Sayfa oluşturulurken bir hata oluştu`);
       }
 
       const data = await res.json();

@@ -171,12 +171,18 @@ export default async function handler(req, res) {
         .single();
 
       if (error) {
-        console.error('Database insert error:', error.message, error.details, error.hint);
+        console.error('Database insert error:', JSON.stringify(error, null, 2));
         return res.status(500).json({ 
-          error: 'Veritabanı hatası: ' + error.message,
+          error: error.message || 'Veritabanı hatası',
+          code: error.code,
           details: error.details,
           hint: error.hint
         });
+      }
+
+      if (!data) {
+        console.error('No data returned from insert');
+        return res.status(500).json({ error: 'Sayfa oluşturulamadı' });
       }
 
       console.log('Page created successfully:', data.slug);
