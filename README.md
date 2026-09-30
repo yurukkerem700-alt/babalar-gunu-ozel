@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/cover.png" alt="BABALAR GÜNÜ ÖZEL" width="100%"></p>
+
 # 🎉 Babalar Günü Özel
 
 Babanıza özel, duygusal ve unutulmaz bir web sayfası oluşturun!
@@ -111,3 +113,7 @@ Pull request'ler memnuniyetle karşılanır!
 ---
 
 **Sevgiyle oluşturuldu 💝 Babalar Günü Özel**
+
+---
+
+© 2026 YÖRÜKHAN STÜDYO — Tüm hakları saklıdır. Bu projenin kodu, tasarımı, oyun fikri ve görselleri izinsiz kopyalanamaz, çoğaltılamaz veya ticari amaçla kullanılamaz.
